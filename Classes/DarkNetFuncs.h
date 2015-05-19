@@ -8,37 +8,43 @@
 
 #ifdef WIN32
 #include <WinSock2.h>
-typedef sockaddr_in SocketAddress;
+typedef sockaddr_in Address;
 #endif
 
 struct Connection
 {
-  SocketAddress address;
+	Address address;
   char			NetworkData[NETWORK_BUFFER_LENGTH];
   void*			pTag;
 };
 
 namespace DarkNet
 { 
-  enum BlockingMode
+  enum eBlockingMode
   {
-    eNonBlocking,
-    eBlocking
+    NonBlocking,
+    Blocking
+  };
+  
+  enum eSocketType
+  {
+	  UDP,
+	  TCP
   };
 
-  int				InitWSA();
-  void				DestroyWSA();
-  int				CreateUDPSocket();
+  int				InitNetwork();
+  void				DestroyNetwork();
+  int				CreateSocket(eSocketType _type);
   void				CloseSocket(int sd);
-  char*				GetIp(SocketAddress *addr);
-  //Specifying Null for ip, will accept connections from Any Address
-  void				CreateSockAddr(SocketAddress& addr, char *ip, int portNum);
-  int				Bind(int sd, SocketAddress& addr);
-  void				SetBlockingMode(int sd, BlockingMode eMode);
-  int				Recieve(int sd, char *buffer, size_t buffSize, SocketAddress &address);
-  int Send(int sd, char *buffer, int buffSize, SocketAddress &address);
+  char*				GetIp(Address *addr);
+  void				FillIp(char *ip_address, Address *addr);				
+  void				CreateAddress(Address& addr, char *ip, int portNum);		//Specifying Null for ip, will accept connections from Any Address
+  int				Bind(int sd, Address& addr);
+  void				SetBlockingMode(int sd, eBlockingMode eMode);
+  int				Recieve(int sd, char *buffer, size_t buffSize, Address &address);
+  int				Send(int sd, char *buffer, int buffSize, Address &address);
   int				SetSocketOption(int sd, int option, int value);
-  int Broadcast(int sd, int portNum,char* message, int buffSize, SocketAddress &addr);
+  int				Broadcast(int sd, int portNum,char* message, int buffSize, Address &addr);
 }
 
 #endif

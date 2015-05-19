@@ -1,5 +1,7 @@
-#include "Log.h"
 #include "DarkNetFuncs.h"
+#include<cstdio>
+#include<Ws2tcpip.h>
+#include"Log.h"
 
 #if defined(WIN32)
 #pragma comment(lib, "ws2_32.lib")
@@ -7,21 +9,21 @@
 
 namespace DarkNet
 {
-	int InitWSA()
+	int InitNetwork()
 	{
 		WSADATA wsa;
 		int res = WSAStartup(MAKEWORD(2,2), &wsa);
 		if(res != 0)
 		{
 			res = WSAGetLastError();
-			LOG.Write("WSAStartup failed : %d\n", res);
+			printf("WSAStartup failed : %d\n", res);
 		}
 
 		LOG<<"WSA initialized\n";
 		return res;
 	}
 
-	void DestroyWSA()
+	void DestroyNetwork()
 	{
 		WSACleanup();
 	}
@@ -31,23 +33,38 @@ namespace DarkNet
 		closesocket(sd);
 	}
 
-	int CreateUDPSocket()
+	int CreateSocket(eSocketType _type)
 	{
-		//Open a datagram socket
-		int sd = INVALID_SOCKET;  
-		sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		int sd = INVALID_SOCKET;
 
-		if(sd == INVALID_SOCKET)
+		switch (_type)
 		{
-			sd = WSAGetLastError();
-			LOG.Write("socket() Failed %d\n", sd);
-			return -1;
-		}
+		case DarkNet::UDP:			
+			
+			sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+			if (sd == INVALID_SOCKET)
+			{
+				sd = WSAGetLastError();
+				LOG.Write("socket() Failed %d\n", sd);
+				sd = -1;
+			}
+			break;
+		case DarkNet::TCP:
+			//ToDo
+			break;
+		default:
+			break;
+		}		
 
 		return sd;
 	}
 
-	void CreateSockAddr(SocketAddress& addr, char *ip, int portNum)
+
+	/*
+	For Servers you would want to use null for IP as they can recieve from any client
+	*/ 
+	void CreateSockAddr(Address& addr, char *ip, int portNum)
 	{
 		memset(&addr, 0, sizeof(sockaddr_in));
 		addr.sin_family = AF_INET;
@@ -71,23 +88,23 @@ namespace DarkNet
 		return 1;
 	}
 
-	void SetBlockingMode(int sd, BlockingMode eMode)
+	void SetBlockingMode(int sd, eBlockingMode eMode)
 	{
 		ULONG mode = -1;
 		switch (eMode)
 		{
-		case eNonBlocking:
+		case NonBlocking:
 			mode = 1;
 			ioctlsocket(sd, FIONBIO, &mode);
 			break;
-		case eBlocking:
+		case Blocking:
 			mode = 0;
 			ioctlsocket(sd, FIONBIO, &mode);
 			break;
 		}
 	}
 
-	int Recieve(int sd, char *buffer, size_t buffSize, SocketAddress &addr)
+	int Recieve(int sd, char *buffer, size_t buffSize, Address &addr)
 	{
 		if(buffer)
 		{
@@ -105,12 +122,12 @@ namespace DarkNet
 		return -1;
 	}
 
-	int Send( int sd, char *buffer, int buffSize, SocketAddress &address )
+	int Send( int sd, char *buffer, int buffSize, Address &address )
 	{
 		if(buffer)
 		{
 			if(buffer > 0)
-				return sendto(sd, buffer, buffSize, 0, (sockaddr*)&address, sizeof(SocketAddress) );
+				return sendto(sd, buffer, buffSize, 0, (sockaddr*)&address, sizeof(Address) );
 		}
 		return -1;
 	}
@@ -120,7 +137,7 @@ namespace DarkNet
 		return setsockopt(sd,SOL_SOCKET,option,(char*)&value,sizeof(int));
 	}
 
-	int Broadcast( int sd, int portNum,char* message, int buffSize, SocketAddress &addr )
+	int Broadcast( int sd, int portNum,char* message, int buffSize, Address &addr )
 	{
 		int broadcast = 1;    
 		setsockopt(sd, SOL_SOCKET, SO_BROADCAST, (char*)&broadcast, sizeof(int));
@@ -130,8 +147,14 @@ namespace DarkNet
 		return bytes_sent;
 	}
 
-	char* GetIp(SocketAddress *addr)
+	char* GetIp(Address *addr)
 	{
+		//inet_ntop(AF_INET, &(addr->sin_addr), ip, ip_len);
 		return inet_ntoa(addr->sin_addr);
+	}
+
+	void FillIp(char *ip_address, Address *addr)
+	{		
+		inet_pton(AF_INET, ip_address, &(addr->sin_addr));
 	}
 }

@@ -36,10 +36,10 @@ Server::~Server(void)
 //Inits required libraries
 bool Server::Init()
 {
-	int res = DarkNet::InitWSA();
+	int res = DarkNet::InitNetwork();
 	OUTPUT("WSAStartup returned : %d\n", res);
 
-	m_socket = DarkNet::CreateUDPSocket();
+	m_socket = DarkNet::CreateSocket(DarkNet::UDP);
 	if(m_socket<0)
 		return false;
 
@@ -51,7 +51,7 @@ void Server::DestroyServer()
 	ShouldListen = false;   //This closes the Listener thread  
 	DarkNet::CloseSocket(m_socket);
 	m_connections.clear();
-	DarkNet::DestroyWSA();
+	DarkNet::DestroyNetwork();
 	m_mutex = INVALID_HANDLE_VALUE;
 }
 
@@ -111,7 +111,7 @@ bool Server::IsNewConnection(char *msg)
 	return (strcmp((char*)msg,(char*)ConnectionMessage.c_str()) == 0);
 }
 
-void Server::AddNewConnection(SocketAddress &addr){    
+void Server::AddNewConnection(Address &addr){    
 	Connection con = CreateConnection(&addr);
 	m_connections.push_back(con);
 	Send(addr,CONNECTION_FORMED);
@@ -122,8 +122,8 @@ void Server::_ReadNetworkData()
 {
 	char buffer[NETWORK_BUFFER_LENGTH];
 	memset(buffer, 0, sizeof(buffer));  
-	SocketAddress addr;
-	memset(&addr, 0, sizeof(SocketAddress));
+	Address addr;
+	memset(&addr, 0, sizeof(Address));
 	int bytes_recv = 0;
 
 	while(bytes_recv != -1 )
@@ -192,7 +192,7 @@ void Server::Update()
 	DispatchNetworkData();
 }
 
-int Server::Send(SocketAddress &addr, char *msg)
+int Server::Send(Address &addr, char *msg)
 {
 	char buffer[NETWORK_BUFFER_LENGTH];
 	strcpy(buffer,msg);
@@ -204,12 +204,12 @@ int Server::Broadcast(char *msg)
 {
 	char buffer[NETWORK_BUFFER_LENGTH];
 	strcpy(buffer,msg);
-	SocketAddress addr;
+	Address addr;
 	DarkNet::CreateSockAddr(addr,"255.255.255.255",m_portNum);
 	return DarkNet::Broadcast(m_socket, m_portNum, buffer,sizeof(buffer), addr);
 } 
 
-Connection Server::CreateConnection(SocketAddress *addr)
+Connection Server::CreateConnection(Address *addr)
 {
 	Connection con;  
 	con.address = *addr;
@@ -219,7 +219,7 @@ Connection Server::CreateConnection(SocketAddress *addr)
 	return con;
 }
 
-bool Server::ConnectionExists(SocketAddress *addr)
+bool Server::ConnectionExists(Address *addr)
 {  
 	std::string ip(DarkNet::GetIp(addr));
 

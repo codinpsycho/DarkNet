@@ -41,10 +41,10 @@ Client::~Client(void)
 
 bool Client::Start(int portNum, bool multithread, ConnectionFormedFunc connfunc, DataRecievedFunc datarecvFunc)
 {
-  int res = DarkNet::InitWSA();
+  int res = DarkNet::InitNetwork();
   OUTPUT("WSAStartup returned : %d\n", res);
 
-  m_socket = DarkNet::CreateUDPSocket();
+  m_socket = DarkNet::CreateSocket(DarkNet::UDP);
   if(m_socket<0)
     return false;
     
@@ -86,7 +86,7 @@ void Client::Stop()
 //This is supposed to be called when we decide our server
 void Client::Connect(char *ip, char *message)
 {  
-  SocketAddress addr;
+  Address addr;
   DarkNet::CreateSockAddr(addr,ip,m_portNum);
   DarkNet::Send(m_socket,message,strlen(message),addr);
 }
@@ -145,7 +145,7 @@ int Client::Broadcast(char *msg)
 	char buffer[NETWORK_BUFFER_LENGTH];
 	strcpy(buffer,msg);
 
-	SocketAddress addr;
+	Address addr;
 	DarkNet::CreateSockAddr(addr,"255.255.255.255",m_portNum);
 	return DarkNet::Broadcast(m_socket, m_portNum, buffer,sizeof(buffer), addr);
 }
@@ -154,8 +154,8 @@ void Client::_ReadNetworkData()
 {
   char buffer[NETWORK_BUFFER_LENGTH];
   memset(buffer, 0, sizeof(buffer));  
-  SocketAddress addr;
-  memset(&addr, 0, sizeof(SocketAddress));
+  Address addr;
+  memset(&addr, 0, sizeof(Address));
   int bytes_recv = 0;
   
   while(bytes_recv != -1 )
@@ -175,7 +175,7 @@ void Client::_ReadNetworkData()
   }
 }
 
-void Client::OnConnectionFormed(SocketAddress &addr)
+void Client::OnConnectionFormed(Address &addr)
 {
   m_isConnected = true;
   m_server.address = addr;
@@ -192,7 +192,7 @@ void Client::StoreData(char *msg)
   ReleaseMutex(m_mutex);
 }
 
-bool Client::IsServer(SocketAddress &addr)
+bool Client::IsServer(Address &addr)
 {
   std::string serverIP = DarkNet::GetIp(&m_server.address);
   std::string testIP = DarkNet::GetIp(&addr);
