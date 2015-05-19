@@ -1,14 +1,26 @@
 #include <stdarg.h>
-#if defined(WIN32)
-#include <Windows.h>
-#endif
 #include "Log.h"
+
+#if defined(WIN32)
+	#define VC_EXTRALEAN
+	#define WIN32_LEAN_AND_MEAN
+	#include <Windows.h>
+#endif
 
 Log::Log(void)
 {
-  AttachFile("Log.txt");  
+	AttachFile(DEFAULT_LOGFILE);
+	ClearFile();
 }
 
+void Log::ClearFile()
+{
+	FILE *file = fopen(m_fileName, "w");
+	if (file)
+	{
+		fclose(file);
+	}	
+}
 
 Log::~Log(void)
 {
@@ -18,11 +30,7 @@ Log::~Log(void)
 
 void Log::AttachFile( char *fileName )
 {
-  strcpy(m_fileName, fileName);	
-  //Open it once to make it Null
-  FILE *file = fopen(fileName,"w");
-  if(file)
-    fclose(file);
+	strcpy_s(m_fileName, sizeof(m_fileName), fileName);
 }
 
 int Log::Write(const char* format,...)
@@ -32,12 +40,15 @@ int Log::Write(const char* format,...)
   if(file)
   {
     va_list list;
-    char buff[1024];							//Buffer to hold final output
+	char buff[LOG_BUFF_SIZE];
     size_t size = sizeof(buff);
-    memset(buff,sizeof(buff),0);				//0 out the memory
-    va_start(list, format);					//Start iterating
-    vsnprintf(buff, size - 2, format, list );	//Print into Buffer
-    va_end(list);								//Free the memory used by list
+    memset(buff,sizeof(buff),0);				
+    va_start(list, format);					
+    vsnprintf(buff, size - 2, format, list );	
+    va_end(list);
+
+	buff[size - 2] = '\n';
+	buff[size - 1] = '\0';
 
     written  = fputs(buff, file);
     fclose(file);
@@ -49,17 +60,17 @@ int Log::Write(const char* format,...)
 void OUTPUT(char *format_, ...)
 {
   va_list list;
-  char buff[2048];							//Buffer to hold final output
+  char buff[LOG_BUFF_SIZE];
   size_t size = sizeof(buff);
-  memset(buff,sizeof(buff),0);				//0 out the memory
+  memset(buff,sizeof(buff),0);					
 
-  va_start(list, format_);					//Start iterating
-  vsnprintf(buff, size - 3, format_, list );	//Print into Buffer
-  va_end(list);								//Free the memory used by list
+  va_start(list, format_);						
+  vsnprintf(buff, size - 2, format_, list );	
+  va_end(list);									
 
-  buff[size - 1]	= '\0';							//To keep it null terminated
-  buff[size - 2]	= '\n';						//To keep it in Human readable form
+  buff[size - 2] = '\n';
+  buff[size - 1] = '\0';  
 
-  OutputDebugString(buff);					//Only works in Debug mode :(
+  OutputDebugString(buff);
 }
 

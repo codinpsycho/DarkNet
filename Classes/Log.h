@@ -1,7 +1,8 @@
 #pragma once
 #include <fstream>
-#include <assert.h>
 
+#define DEFAULT_LOGFILE "log.txt"
+#define LOG_BUFF_SIZE 1024
 
 class Log
 {
@@ -14,27 +15,27 @@ public:
 	}
 	
 	void AttachFile(char *fileName);
-	int operator<<(const char *data )
+	void ClearFile();
+	int Write(const char* data, ...);
+
+	int operator<<(const char *data)
 	{
 		int written = 0;
-		FILE *file = fopen_s(m_fileName,"a");
+		FILE *file = fopen(m_fileName,"a");
 		if(file)
 		{
 			written = fputs(data, file);
 			fclose(file);
-	}
-	return written;
-	}
-	int Write(const char* data,...);	
+		}
+		return written;
+	}	
 	virtual ~Log(void);
 
 private:
 	Log(void);
 	Log(const Log& rhs);
 	Log operator=(Log& rhs);
-	
-	//Data Members
-  char m_fileName[256];	
+	char m_fileName[256];
 };
 
 void OUTPUT(char *format_, ...);
