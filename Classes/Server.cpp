@@ -1,7 +1,7 @@
 #include "Server.h"
 #include "Log.h"
 
-#if defined (WIN32) || (_XBOX)
+#if defined (WIN32)
 DWORD __stdcall NetworkThread_Server(void *params)
 {
 	Server *serv = reinterpret_cast<Server*>(params);	
@@ -26,10 +26,6 @@ Server::Server(void)
 	ConnectionMessage = "";
 	ConnCallbackFunc = NULL;
 	m_isMultithreaded = false;
-
-#if defined(_XBOX)
-	memset(&m_xnetInfo,0,sizeof(XNetInfo));
-#endif
 }
 
 
@@ -47,23 +43,6 @@ bool Server::Init()
 	if(m_socket<0)
 		return false;
 
-#if defined (_XBOX)
-	if(!DarkNet::GetXBoxAddr(&m_xnetInfo.m_xnaddr))
-		return false;	
-
-	if( XNetCreateKey( &m_xnetInfo.m_xnkid, &m_xnetInfo.m_xnkey ) != 0 )
-	{
-		LOG.Write("Failed to Create a Key");
-		return false;
-	}
-
-	if(XNetRegisterKey( &m_xnetInfo.m_xnkid, &m_xnetInfo.m_xnkey ) != 0)
-	{
-		LOG.Write("ERROR REGISTER FAILED!");
-		return false;
-	}
-#endif
-
 	return true;
 }
 
@@ -71,11 +50,6 @@ void Server::DestroyServer()
 {
 	ShouldListen = false;   //This closes the Listener thread  
 	DarkNet::CloseSocket(m_socket);
-
-#if defined(_XBOX)
-	XNetUnregisterKey(&m_xnetInfo.m_xnkid);
-#endif
-
 	m_connections.clear();
 	DarkNet::DestroyWSA();
 	m_mutex = INVALID_HANDLE_VALUE;
@@ -101,10 +75,6 @@ bool Server::CreateServer(int portNum, int maxClients)
 		m_connections.reserve(m_maxClients);
 		m_threadID = 0;
 		m_portNum = portNum;
-
-#if defined(_XBOX)
-		DarkNet::SetSocketOption(m_socket,SO_BROADCAST,1);
-#endif
 		return true;
 	} 
 
@@ -122,7 +92,7 @@ void Server::StartListening(char *message, bool multithread, OnConnectionFound c
 
 	if(m_isMultithreaded)
 	{
-#if defined (WIN32) || (_XBOX)
+#if defined (WIN32)
 		m_mutex = CreateMutex(NULL,false,NULL);
 		CreateThread(NULL,1024,NetworkThread_Server,this,0,&m_threadID);
 #endif
@@ -144,13 +114,7 @@ bool Server::IsNewConnection(char *msg)
 void Server::AddNewConnection(SocketAddress &addr){    
 	Connection con = CreateConnection(&addr);
 	m_connections.push_back(con);
-
-#if defined(_XBOX)
-	Broadcast(CONNECTION_FORMED);
-#else
 	Send(addr,CONNECTION_FORMED);
-#endif
-
 	ConnCallbackFunc(&con);
 }
 
@@ -171,16 +135,6 @@ void Server::_ReadNetworkData()
 		if(bytes_recv <= 0)
 			continue;
 
-#if defined (_XBOX)		
-		//Make sure it has XnetInfo as header
- 		PacketHeader header = DarkNet::ExtractHeader(buffer,bytes_recv);
-		if(header.m_darknet_xId == -1)
-			continue;
-
-		//Else get the socketaddress
-		addr = DarkNet::GetSocketAddress(header.m_xnaddr, m_xnetInfo.m_xnkid);
-#endif
-
 		if(ConnectionExists(&addr))
 		{
 			Connection *con  = GetConnection(DarkNet::GetIp(&addr));
@@ -192,11 +146,7 @@ void Server::_ReadNetworkData()
 				AddNewConnection(addr);
 			else
 			{
-#if defined (_XBOX)	
-				Broadcast(SERVER_FULL);
-#else
 				Send(addr,SERVER_FULL);
-#endif
 			}
 		}
 		else
@@ -246,9 +196,6 @@ int Server::Send(SocketAddress &addr, char *msg)
 {
 	char buffer[NETWORK_BUFFER_LENGTH];
 	strcpy(buffer,msg);
-#if defined(_XBOX)	
-	DarkNet::IncludeHeader(m_xnetInfo,buffer);
-#endif
 
 	return DarkNet::Send(m_socket,buffer,sizeof(buffer),addr);
 }
@@ -257,9 +204,6 @@ int Server::Broadcast(char *msg)
 {
 	char buffer[NETWORK_BUFFER_LENGTH];
 	strcpy(buffer,msg);
-#if defined(_XBOX)	
-	DarkNet::IncludeHeader(m_xnetInfo,buffer);
-#endif
 	SocketAddress addr;
 	DarkNet::CreateSockAddr(addr,"255.255.255.255",m_portNum);
 	return DarkNet::Broadcast(m_socket, m_portNum, buffer,sizeof(buffer), addr);

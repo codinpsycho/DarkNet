@@ -1,10 +1,7 @@
 #include <stdarg.h>
 #if defined(WIN32)
 #include <Windows.h>
-#elif(_XBOX)
-#include <xtl.h>
 #endif
-
 #include "Log.h"
 
 Log::Log(void)
@@ -15,7 +12,7 @@ Log::Log(void)
 
 Log::~Log(void)
 {
-	Write("All right, Everything destroyed, Self Destructing now \nBye Bye :) :)\n\nI Game Hard, I Code Harder");		
+	Write("Self Destructing now ");
 }
 
 

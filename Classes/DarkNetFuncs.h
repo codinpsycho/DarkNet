@@ -11,26 +11,6 @@
 typedef sockaddr_in SocketAddress;
 #endif
 
-#ifdef _XBOX
-#include <xtl.h>
-typedef sockaddr_in SocketAddress;
-
-const int DARKNET_X360	 = atoi("DARKNET_X360");
-
-//Holds information of XBox Network Layer.
-struct XNetInfo
-{
-	int			m_darknet_xId;
-	XNADDR		m_xnaddr;
-	XNKID		m_xnkid;
-	XNKEY		m_xnkey;
-};
-
-//BSD : inet_ntoa functionality for XBox
-static char* inet_ntoa(struct in_addr in);
-typedef XNetInfo PacketHeader;
-#endif
-
 struct Connection
 {
   SocketAddress address;
@@ -59,14 +39,6 @@ namespace DarkNet
   int Send(int sd, char *buffer, int buffSize, SocketAddress &address);
   int				SetSocketOption(int sd, int option, int value);
   int Broadcast(int sd, int portNum,char* message, int buffSize, SocketAddress &addr);
-
-#if defined _XBOX
-  bool				GetXBoxAddr(XNADDR *pXnAddr);
-  PacketHeader ExtractHeader(char *buffer,unsigned int size);
-  void				IncludeHeader(PacketHeader &header, char *buffer);
-  bool				IsBufferValid(char *buffer);
-  SocketAddress		GetSocketAddress(XNADDR xAddr, XNKID kID);
-#endif //_XBOX
 }
 
 #endif

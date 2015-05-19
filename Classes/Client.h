@@ -39,8 +39,5 @@ public:
   void							Connect(char *ip, char* message);
   void							Disconnect(); 
 
-#if defined(_XBOX)
-  XNetInfo					m_xnetInfo;
-#endif
 };
 

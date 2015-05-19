@@ -58,7 +58,4 @@ public:
   int						GetPortNum()                    { return m_portNum;     }
   std::vector<Connection>&	GetConnections()				{ return m_connections; }
   
-#if defined(_XBOX)
-  XNetInfo					m_xnetInfo;
-#endif
 };

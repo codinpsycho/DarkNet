@@ -1,7 +1,7 @@
 #include "Client.h"
 #include "Log.h"
 
-#if defined( WIN32) || (_XBOX)
+#if defined( WIN32)
 DWORD __stdcall NetworkThread_Client(void *params)
 {
   Client *client = reinterpret_cast<Client*>(params);	
@@ -28,8 +28,7 @@ Client::Client(void)
   IsAlive = false;
   m_mutex = INVALID_HANDLE_VALUE;
   m_threadID = 0;  
-  memset(&m_server, 0, sizeof(m_server));
-  memset(&m_xnetInfo, 0, sizeof(m_xnetInfo));
+  memset(&m_server, 0, sizeof(m_server));  
   _ConnCalbackFunc = NULL;
   _DataCallbackFunc = NULL;
 }
@@ -63,12 +62,9 @@ bool Client::Start(int portNum, bool multithread, ConnectionFormedFunc connfunc,
     return false;
   }
 
-  if(!DarkNet::GetXBoxAddr(&m_xnetInfo.m_xnaddr))
-	  OUTPUT("GetXBoxAddr failed\n");
-
   if(m_isMultithread)
   {
-#if defined (WIN32) || (_XBOX)
+#if defined (WIN32)
     m_mutex = CreateMutex(NULL,false,NULL);
     CreateThread(NULL,1024,NetworkThread_Client,this,0,&m_threadID);
 #endif
@@ -113,9 +109,6 @@ int Client::Send(char *msg)
 
   char buffer[NETWORK_BUFFER_LENGTH];
   strcpy(buffer,msg);
-#if defined(_XBOX)	
-  DarkNet::IncludeHeader(m_xnetInfo,buffer);
-#endif
 
   return DarkNet::Send(m_socket,buffer,sizeof(buffer),m_server.address);
 }
@@ -151,13 +144,10 @@ int Client::Broadcast(char *msg)
 {
 	char buffer[NETWORK_BUFFER_LENGTH];
 	strcpy(buffer,msg);
-#if defined(_XBOX)	
-	DarkNet::IncludeHeader(m_xnetInfo,buffer);
-#endif
 
-  SocketAddress addr;
-  DarkNet::CreateSockAddr(addr,"255.255.255.255",m_portNum);
-  return DarkNet::Broadcast(m_socket, m_portNum, buffer,sizeof(buffer), addr);
+	SocketAddress addr;
+	DarkNet::CreateSockAddr(addr,"255.255.255.255",m_portNum);
+	return DarkNet::Broadcast(m_socket, m_portNum, buffer,sizeof(buffer), addr);
 }
 
 void Client::_ReadNetworkData()
@@ -171,20 +161,6 @@ void Client::_ReadNetworkData()
   while(bytes_recv != -1 )
   {
     bytes_recv = DarkNet::Recieve(m_socket,buffer, sizeof(buffer),addr);
-
-#if defined (_XBOX)		
-	//Make sure it has XnetInfo as header
-	PacketHeader header = DarkNet::ExtractHeader(buffer,bytes_recv);
-	if(header.m_darknet_xId == -1)
-		continue;
-	
-	if(!m_isConnected)
-		if(XNetRegisterKey(&header.m_xnkid,&header.m_xnkey) != 0)
-			OUTPUT("FAILED To Register the key!");
-
-	//Else get the socketaddress
-	addr = DarkNet::GetSocketAddress(header.m_xnaddr, header.m_xnkid);
-#endif
 
     if(IsServer(addr))
     {
