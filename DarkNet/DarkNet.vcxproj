@@ -76,11 +76,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Classes\Client.cpp" />
     <ClCompile Include="..\Classes\DarkNetFuncs.cpp" />
     <ClCompile Include="..\Classes\Log.cpp" />
     <ClCompile Include="..\Classes\main.cpp" />
-    <ClCompile Include="..\Classes\Server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\Client.h" />
