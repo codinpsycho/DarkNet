@@ -128,7 +128,6 @@ void Server::_ReadNetworkData()
 
 	while(bytes_recv != -1 )
 	{
-
 		//Get IP Address from Client.
 		bytes_recv = DarkNet::Recieve(m_socket,buffer, sizeof(buffer),addr);
 		

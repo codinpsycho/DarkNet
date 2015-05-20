@@ -9,13 +9,8 @@ typedef void (*OnDataRecieved)(char* data, void* tag);
 class Server
 {
   Connection				CreateConnection(Address *addr);
-  bool						Init();
-  
-#if defined(_XB0X)
-  bool						ConnectionExists(XNetInfo *info);
-#else
+  bool						Init();  
   bool						ConnectionExists(Address *addr);
-#endif
   Connection*				GetConnection(std::string);
   void						DispatchNetworkData();
   void						StoreData(Connection *con, char *data);
