@@ -45,7 +45,6 @@ namespace DarkNet
 			{
 				sd = WSAGetLastError();
 				OUTPUT("socket() Failed %d\n", sd);
-				sd = -1;
 			}
 			break;
 		case DarkNet::TCP:
@@ -53,7 +52,7 @@ namespace DarkNet
 			break;
 		default:
 			break;
-		}		
+		}
 
 		return sd;
 	}
@@ -62,28 +61,31 @@ namespace DarkNet
 	/*
 	For Servers you would want to use null for IP as they can recieve from any client
 	*/ 
-	void CreateSockAddr(Address& addr, char *ip, int portNum)
+	void CreateAddress(Address& addr, char *ip, int portNum)
 	{
-		memset(&addr, 0, sizeof(sockaddr_in));
+		memset(&addr, 0, sizeof(Address));
 		addr.sin_family = AF_INET;
-		addr.sin_port = htons(portNum);   
-		if(!ip)
+		addr.sin_port = htons(portNum);
+		if (!ip)
+		{
 			addr.sin_addr.s_addr = INADDR_ANY;
+		}
 		else
+		{
 			addr.sin_addr.s_addr = inet_addr(ip);
+		}
 	}
 
-	int Bind(int sd, sockaddr_in& addr)
+	int Bind(int sd, Address& addr)
 	{
-		int res = ::bind(sd, (sockaddr*)&addr, sizeof(sockaddr_in));
+		int res = ::bind(sd, (sockaddr*)&addr, sizeof(Address));
 		if(res == SOCKET_ERROR)
 		{
 			res = WSAGetLastError();
 			OUTPUT("bind() failed : %d\n", res);
-			return -1;
 		}
 
-		return 1;
+		return res;
 	}
 
 	void SetBlockingMode(int sd, eBlockingMode eMode)
@@ -102,30 +104,30 @@ namespace DarkNet
 		}
 	}
 
-	int Recieve(int sd, char *buffer, size_t buffSize, Address &addr)
+	int RecieveFrom(int sd, char *buffer, size_t buffSize, Address &recv_from)
 	{
 		if(buffer)
-		{
-			if(buffSize > 0)
-			{
-				int length = sizeof(sockaddr_in);
-				int buff_recv = recvfrom(sd, buffer,buffSize,0, (sockaddr*)&addr,&length);
+		{			
+			int length = sizeof(Address);
+			int buff_recv = recvfrom(sd, buffer, buffSize, 0, (sockaddr*)&recv_from, &length);
 
-				if(buff_recv > 0) 
-					buffer[buff_recv] = '\0';
-				return buff_recv;
-			}      
+			if (buff_recv > 0)
+			{
+				buffer[buff_recv] = '\0';
+			}
+			
+			return buff_recv;
 		}    
 
 		return -1;
 	}
 
-	int Send( int sd, char *buffer, int buffSize, Address &address )
+	int SendTo( int sd, const char *buffer, int buffSize, Address &send_to )
 	{
 		if(buffer)
 		{
 			if(buffer > 0)
-				return sendto(sd, buffer, buffSize, 0, (sockaddr*)&address, sizeof(Address) );
+				return sendto(sd, buffer, buffSize, 0, (sockaddr*)&send_to, sizeof(Address));
 		}
 		return -1;
 	}
@@ -139,16 +141,15 @@ namespace DarkNet
 	{
 		int broadcast = 1;    
 		setsockopt(sd, SOL_SOCKET, SO_BROADCAST, (char*)&broadcast, sizeof(int));
-		int bytes_sent = Send(sd,message,buffSize,addr);
-		//broadcast = 0;
-		//setsockopt(sd, SOL_SOCKET, SO_BROADCAST, (char*)&broadcast, sizeof(int));
+		int bytes_sent = SendTo(sd,message,buffSize,addr);
+		broadcast = 0;
+		setsockopt(sd, SOL_SOCKET, SO_BROADCAST, (char*)&broadcast, sizeof(int));
 		return bytes_sent;
 	}
 
-	char* GetIp(Address *addr)
-	{
-		//inet_ntop(AF_INET, &(addr->sin_addr), ip, ip_len);
-		return inet_ntoa(addr->sin_addr);
+	void GetIp(Address *addr, char *ip_address, size_t len)
+	{		
+		inet_ntop(addr->sin_family, &(addr->sin_addr), ip_address, len);		
 	}
 
 	void FillIp(char *ip_address, Address *addr)
