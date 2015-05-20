@@ -161,8 +161,10 @@ namespace DarkNet
 		int ret = gethostname(host_name, name_len);
 		if (ret != 0)
 		{
-			return WSAGetLastError();
+			ret = WSAGetLastError();
 		}
+
+		return ret;
 	}
 
 	/*
