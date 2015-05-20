@@ -16,10 +16,8 @@ namespace DarkNet
 		if(res != 0)
 		{
 			res = WSAGetLastError();
-			printf("WSAStartup failed : %d\n", res);
-		}
-
-		LOG<<"WSA initialized\n";
+			OUTPUT("WSAStartup failed : %d\n", res);
+		}		
 		return res;
 	}
 
@@ -28,9 +26,9 @@ namespace DarkNet
 		WSACleanup();
 	}
 
-	void CloseSocket(int sd)
+	int CloseSocket(int sd)
 	{
-		closesocket(sd);
+		return closesocket(sd);
 	}
 
 	int CreateSocket(eSocketType _type)
@@ -46,7 +44,7 @@ namespace DarkNet
 			if (sd == INVALID_SOCKET)
 			{
 				sd = WSAGetLastError();
-				LOG.Write("socket() Failed %d\n", sd);
+				OUTPUT("socket() Failed %d\n", sd);
 				sd = -1;
 			}
 			break;
@@ -81,7 +79,7 @@ namespace DarkNet
 		if(res == SOCKET_ERROR)
 		{
 			res = WSAGetLastError();
-			LOG.Write("bind() failed : %d\n", res);
+			OUTPUT("bind() failed : %d\n", res);
 			return -1;
 		}
 
@@ -156,5 +154,58 @@ namespace DarkNet
 	void FillIp(char *ip_address, Address *addr)
 	{		
 		inet_pton(AF_INET, ip_address, &(addr->sin_addr));
+	}
+
+	int GetHostName(char *host_name, size_t name_len)
+	{
+		int ret = gethostname(host_name, name_len);
+		if (ret != 0)
+		{
+			return WSAGetLastError();
+		}
+	}
+
+	/*
+	node_name		:	IP address or "www.example.com"
+	service_name	:	port num or "http"
+	eSocketType		:	UDP/TCP
+	AddressInfo		:	pass a null ptr
+
+	Do remember to free AdressInfo(output) after using
+	*/
+	int GetAddressInfo(char *node_name, char *service_name, eSocketType type, AddressInfo **output)
+	{
+		addrinfo hints;
+		memset(&hints, 0, sizeof(addrinfo));
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_flags = AI_PASSIVE;
+
+		switch (type)
+		{
+		case DarkNet::UDP:
+			hints.ai_socktype = SOCK_DGRAM;
+			hints.ai_protocol = IPPROTO_UDP;
+			break;
+		case DarkNet::TCP:
+			hints.ai_socktype = SOCK_STREAM;
+			hints.ai_protocol = IPPROTO_TCP;
+			break;
+		default:
+			break;
+		}
+		
+		int ret = getaddrinfo(node_name, service_name, &hints, output);
+		if (ret != 0)
+		{
+			ret = WSAGetLastError();
+			OUTPUT("getaddrinfo failed with error code %d", ret);
+		}
+
+		return ret;
+	}
+
+	void FreeAddressInfo(addrinfo *info)
+	{
+		freeaddrinfo(info);
 	}
 }
