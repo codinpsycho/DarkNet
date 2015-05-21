@@ -1,5 +1,6 @@
 #ifndef DARK_NET_FUNCS
 #define DARK_NET_FUNCS
+
 #define NETWORK_BUFFER_LENGTH 1024
 #define CONNECTION_REQUEST    "hello"
 #define CONNECTION_FORMED     "yes"
@@ -7,13 +8,13 @@
 
 #ifdef WIN32
 #include <WinSock2.h>
-typedef sockaddr_in Address;
+typedef sockaddr_in SockAddr;
 typedef addrinfo AddressInfo;
 #endif
 
 struct Connection
 {
-	Address			address;
+	SockAddr		address;
 	char			NetworkData[NETWORK_BUFFER_LENGTH];
 	void*			pTag;
 };
@@ -36,18 +37,18 @@ namespace DarkNet
 	void			DestroyNetwork();
 	int				CreateSocket(eSocketType _type);
 	int				CloseSocket(int sd);
-	void			CreateAddress(Address& addr, char *ip, int portNum);	//Specifying Null for ip, will accept connections from Any Address(INADDR_ANY)
-	int				Bind(int sd, Address& addr);
+	void			CreateSockAddress(SockAddr& addr, char *ip, int portNum);	//Specifying Null for ip, will accept connections from Any Address(INADDR_ANY)
+	int				Bind(int sd, SockAddr& addr);
 	void			SetBlockingMode(int sd, eBlockingMode eMode);
-	int				RecieveFrom(int sd, char *buffer, size_t buffSize, Address &rev_from);
-	int				SendTo(int sd, const char *buffer, int buffSize, Address &send_to);
+	int				RecieveFrom(int sd, char *buffer, size_t buffSize, SockAddr &rev_from);
+	int				SendTo(int sd, const char *buffer, int buffSize, SockAddr &send_to);
 	int				SetSocketOption(int sd, int option, int value);
-	int				Broadcast(int sd, int portNum, char* message, int buffSize, Address &addr);
+	int				Broadcast(int sd, int portNum, char* message, int buffSize, SockAddr &addr);
 	int				GetHostName(char *name, size_t len);
 	int				GetAddressInfo(char *service_name, char *node_name, eSocketType type, AddressInfo **addr_info);
 	void			FreeAddressInfo();
-	void			GetIp(Address *addr, char *ip_address, size_t len);
-	void			FillIp(char *ip_address, Address *addr);
+	void			GetIp(SockAddr *addr, char *ip_address, size_t len);
+	void			FillIp(char *ip_address, SockAddr *addr);
 }
 
 #endif

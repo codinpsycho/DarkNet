@@ -8,13 +8,13 @@ typedef void (*OnDataRecieved)(char* data, void* tag);
 
 class Server
 {
-  Connection				CreateConnection(Address *addr);
+  Connection				CreateConnection(SockAddr *addr);
   bool						Init();  
-  bool						ConnectionExists(Address *addr);
+  bool						ConnectionExists(SockAddr *addr);
   Connection*				GetConnection(std::string);
   void						DispatchNetworkData();
   void						StoreData(Connection *con, char *data);
-  void						AddNewConnection(Address &addr);
+  void						AddNewConnection(SockAddr &addr);
   bool						IsNewConnection(char *msg);    
 
   std::vector<Connection>	m_connections;  
@@ -28,7 +28,7 @@ public:
   Server(void);
   virtual ~Server(void);
   
-  Address				m_serverAddr;
+  SockAddr				m_serverAddr;
 
   DWORD						m_threadID;
   volatile bool				ShouldListen;
@@ -44,11 +44,11 @@ public:
   void						StartListening(char *message, bool multithread, OnConnectionFound, OnDataRecieved);
   void						Update();
 
-  int						Send(Address &addr, char *msg);
+  int						Send(SockAddr &addr, char *msg);
   int Broadcast(char *msg);
 
   int						SendAll(char *msg);
-  Address				GetServeraddress()				{ return m_serverAddr;  }
+  SockAddr				GetServeraddress()				{ return m_serverAddr;  }
   UINT						GetMaxClients()                 { return m_maxClients;  }
   int						GetPortNum()                    { return m_portNum;     }
   std::vector<Connection>&	GetConnections()				{ return m_connections; }

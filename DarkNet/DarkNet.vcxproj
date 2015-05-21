@@ -76,15 +76,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Classes\DarkNetFuncs.cpp" />
-    <ClCompile Include="..\Classes\Log.cpp" />
-    <ClCompile Include="..\Classes\main.cpp" />
+    <ClCompile Include="DarkNetFuncs.cpp" />
+    <ClCompile Include="DarkNetStructs.cpp" />
+    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Network.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Classes\Client.h" />
-    <ClInclude Include="..\Classes\DarkNetFuncs.h" />
-    <ClInclude Include="..\Classes\Log.h" />
-    <ClInclude Include="..\Classes\Server.h" />
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="DarkNetFuncs.h" />
+    <ClInclude Include="DarkNetStructs.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="Network.h" />
+    <ClInclude Include="Server.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

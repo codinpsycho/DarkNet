@@ -61,9 +61,9 @@ namespace DarkNet
 	/*
 	For Servers you would want to use null for IP as they can recieve from any client
 	*/ 
-	void CreateAddress(Address& addr, char *ip, int portNum)
+	void CreateSockAddress(SockAddr& addr, char *ip, int portNum)
 	{
-		memset(&addr, 0, sizeof(Address));
+		memset(&addr, 0, sizeof(SockAddr));
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(portNum);
 		if (!ip)
@@ -76,9 +76,9 @@ namespace DarkNet
 		}
 	}
 
-	int Bind(int sd, Address& addr)
+	int Bind(int sd, SockAddr& addr)
 	{
-		int res = ::bind(sd, (sockaddr*)&addr, sizeof(Address));
+		int res = ::bind(sd, (sockaddr*)&addr, sizeof(SockAddr));
 		if(res == SOCKET_ERROR)
 		{
 			res = WSAGetLastError();
@@ -104,11 +104,11 @@ namespace DarkNet
 		}
 	}
 
-	int RecieveFrom(int sd, char *buffer, size_t buffSize, Address &recv_from)
+	int RecieveFrom(int sd, char *buffer, size_t buffSize, SockAddr &recv_from)
 	{
 		if(buffer)
 		{			
-			int length = sizeof(Address);
+			int length = sizeof(SockAddr);
 			int buff_recv = recvfrom(sd, buffer, buffSize, 0, (sockaddr*)&recv_from, &length);
 
 			if (buff_recv > 0)
@@ -122,12 +122,12 @@ namespace DarkNet
 		return -1;
 	}
 
-	int SendTo( int sd, const char *buffer, int buffSize, Address &send_to )
+	int SendTo( int sd, const char *buffer, int buffSize, SockAddr &send_to )
 	{
 		if(buffer)
 		{
 			if(buffer > 0)
-				return sendto(sd, buffer, buffSize, 0, (sockaddr*)&send_to, sizeof(Address));
+				return sendto(sd, buffer, buffSize, 0, (sockaddr*)&send_to, sizeof(SockAddr));
 		}
 		return -1;
 	}
@@ -137,7 +137,7 @@ namespace DarkNet
 		return setsockopt(sd,SOL_SOCKET,option,(char*)&value,sizeof(int));
 	}
 
-	int Broadcast( int sd, int portNum,char* message, int buffSize, Address &addr )
+	int Broadcast( int sd, int portNum,char* message, int buffSize, SockAddr &addr )
 	{
 		int broadcast = 1;    
 		setsockopt(sd, SOL_SOCKET, SO_BROADCAST, (char*)&broadcast, sizeof(int));
@@ -147,12 +147,12 @@ namespace DarkNet
 		return bytes_sent;
 	}
 
-	void GetIp(Address *addr, char *ip_address, size_t len)
+	void GetIp(SockAddr *addr, char *ip_address, size_t len)
 	{		
 		inet_ntop(addr->sin_family, &(addr->sin_addr), ip_address, len);		
 	}
 
-	void FillIp(char *ip_address, Address *addr)
+	void FillIp(char *ip_address, SockAddr *addr)
 	{		
 		inet_pton(AF_INET, ip_address, &(addr->sin_addr));
 	}

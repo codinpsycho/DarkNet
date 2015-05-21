@@ -16,9 +16,9 @@ class Client
   HANDLE						m_mutex;
   DWORD							m_threadID;  
   
-  bool							IsServer(Address &addr);
+  bool							IsServer(SockAddr &addr);
   void							StoreData(char *msg);
-  void							OnConnectionFormed(Address &addr);
+  void							OnConnectionFormed(SockAddr &addr);
   void							DispatchNetworkData();
 public:
   Client(void);

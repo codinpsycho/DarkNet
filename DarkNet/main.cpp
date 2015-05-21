@@ -6,13 +6,13 @@ using namespace DarkNet;
 
 void CreateServer()
 {
-	Address addr;	
-	CreateAddress(addr, NULL, 5011);
+	SockAddr addr;	
+	CreateSockAddress(addr, NULL, 5011);
 	int sd = CreateSocket(DarkNet::UDP);
 	Bind(sd, addr);
 
 	char buff[NETWORK_BUFFER_LENGTH];	
-	Address from;
+	SockAddr from;
 	RecieveFrom(sd, buff, NETWORK_BUFFER_LENGTH, from);
 
 	char ip[512];
@@ -25,8 +25,8 @@ void CreateServer()
 
 void CreateClient()
 {	
-	Address addr;
-	CreateAddress(addr, "127.0.0.1", 5011);
+	SockAddr addr;
+	CreateSockAddress(addr, "127.0.0.1", 5011);
 	int sd = CreateSocket(DarkNet::UDP);
 
 	//Note: Bind is not necessary for client, SendTo will bind automatically
