@@ -1,62 +1,75 @@
 #include"DarkNetFuncs.h"
+#include "DarkNetStructs.h"
+#include "DarkNetwork.h"
 #include<iostream>
 #include "Log.h"
 
 using namespace DarkNet;
 
-void CreateServer()
+//Callbacks
+void DataRecieved(Packet* pck, void* tag)
 {
-	SockAddr addr;	
-	CreateSockAddress(addr, NULL, 5011);
-	int sd = CreateSocket(DarkNet::UDP);
-	Bind(sd, addr);
-
-	char buff[NETWORK_BUFFER_LENGTH];	
-	SockAddr from;
-	RecieveFrom(sd, buff, NETWORK_BUFFER_LENGTH, from);
-
-	char ip[512];
-	GetIp(&from, ip, 512);
 	
-	OUTPUT("Recieved from : %s", ip);
-	OUTPUT(buff);
-	CloseSocket(sd);
+	char buff[DN_NETWORK_BUFFER_LENGTH];
+	sprintf_s(buff, "Msg : %s | Bytes recieved = %d\n", pck->msg.buffer, strlen(pck->msg.buffer));
+
+	std::cout << buff;
+	if (strcmp(pck->msg.buffer, "quit") == 0)
+		exit(0);
 }
 
-void CreateClient()
-{	
-	SockAddr addr;
-	CreateSockAddress(addr, "127.0.0.1", 5011);
-	int sd = CreateSocket(DarkNet::UDP);
+void ConnectionFound(void* params)
+{
 
-	//Note: Bind is not necessary for client, SendTo will bind automatically
-	char buff[NETWORK_BUFFER_LENGTH];
-	SendTo(sd, "Testing Testing", 16, addr);
-	OUTPUT(buff);
-	CloseSocket(sd);
 }
 
 int main()
 {
-	OUTPUT("%d",strlen("255.255.255.255"));
-	DarkNet::InitNetwork();	
+	DarkNetwork::Instance().Start(ConnectionFound, DataRecieved);
+	char input[DN_NETWORK_BUFFER_LENGTH];
+	char choice;
+	
+	std::cout << "1. Listen\n";
+	std::cout << "2. Send to localhost\n";
+	std::cout << "3. Broadcast\n";
+	std::cin >> choice;
 
-	int input;	
-	std::cout << "Press 1 for Server\n";
-	std::cout << "Press 2 for client\n";
-	std::cin >> input;
-
-	switch (input)
+	switch (choice)
 	{
-	case 1:
-		CreateServer();
+	case '1':
+		while (true)
+		{
+			Sleep(10);
+			DarkNetwork::Instance().Update();
+		}
 		break;
-	case 2:
-		CreateClient();
+	case '2':
+	{
+		Address addr(, DN_NETWORK_PORT_NUM);
+		while (true)
+		{
+			Sleep(10);
+			std::cin >> input;
+			Packet pck(input, addr);
+			int bytes_sent = DarkNetwork::Instance().Send(&pck);
+			char buff[64];
+			sprintf_s(buff, "bytes_sent = %d\n", bytes_sent);
+			std::cout << buff;
+		}
+	}
+		
+		break;
+	case '3':
+		while (true)
+		{
+			Sleep(10);
+			std::cin >> input;			
+			DarkNetwork::Instance().Broadcast(input);
+		}		
 		break;
 	}
+	
 
-	DarkNet::DestroyNetwork();
 	system("pause");
 	return 0;
 }
