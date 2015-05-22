@@ -124,12 +124,12 @@ namespace DarkNet
 
 	int SendTo( int sd, const char *buffer, int buffSize, SockAddr &send_to )
 	{
+		int bytes_sent = 0;
 		if(buffer)
-		{
-			if(buffer > 0)
-				return sendto(sd, buffer, buffSize, 0, (sockaddr*)&send_to, sizeof(SockAddr));
+		{			
+			bytes_sent = sendto(sd, buffer, buffSize, 0, (sockaddr*)&send_to, sizeof(SockAddr));
 		}
-		return -1;
+		return bytes_sent;
 	}
 
 	int SetSocketOption(int sd, int option, int value)
@@ -137,7 +137,7 @@ namespace DarkNet
 		return setsockopt(sd,SOL_SOCKET,option,(char*)&value,sizeof(int));
 	}
 
-	int Broadcast( int sd, int portNum,char* message, int buffSize, SockAddr &addr )
+	int Broadcast( int sd,char* message, int buffSize, SockAddr &addr )
 	{
 		int broadcast = 1;    
 		setsockopt(sd, SOL_SOCKET, SO_BROADCAST, (char*)&broadcast, sizeof(int));
