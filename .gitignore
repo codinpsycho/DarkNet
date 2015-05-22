@@ -49,5 +49,6 @@ Temporary Items
 *.sdf
 *.suo
 Debug
+Release
 ipch
 *.v12.suo
