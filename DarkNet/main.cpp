@@ -45,7 +45,7 @@ int main()
 		break;
 	case '2':
 	{
-		Address addr(, DN_NETWORK_PORT_NUM);
+		Address addr(DN_LOCALHOST_ADDRESS, DN_NETWORK_PORT_NUM);
 		while (true)
 		{
 			Sleep(10);

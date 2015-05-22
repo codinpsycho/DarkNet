@@ -19,7 +19,7 @@ namespace DarkNet
 
 	}
 
-	void DarkNetwork::Start(OnConnectionFound connection_callback, OnDataRecieved data_callback)
+	void DarkNetwork::Start(OnPeerFound connection_callback, OnDataRecieved data_callback)
 	{
 		if (connection_callback == NULL || data_callback == NULL)
 		{
@@ -41,7 +41,7 @@ namespace DarkNet
 		}
 		DarkNet::SetBlockingMode(m_socket->sd, DarkNet::NonBlocking);
 
-		m_connection_callback = connection_callback;
+		m_new_peer_callback = connection_callback;
 		m_data_callback = data_callback;
 	}
 
@@ -51,7 +51,7 @@ namespace DarkNet
 		delete m_socket;
 		delete m_address;
 
-		m_connection_callback	= nullptr;
+		m_new_peer_callback	= nullptr;
 		m_data_callback			= nullptr;
 	}
 
