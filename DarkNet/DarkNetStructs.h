@@ -6,6 +6,19 @@
 
 namespace DarkNet
 {
+	enum eListeningState
+	{
+		eActive,
+		eInactive
+	};
+
+	enum eMode
+	{
+		eHost,
+		eClient,
+		eIdle
+	};
+
 	struct UDPSocket
 	{
 		int sd;
@@ -22,30 +35,47 @@ namespace DarkNet
 		~Address();
 	};
 
-	struct Message
+	struct Buffer
 	{
 		char buffer[DN_NETWORK_BUFFER_LENGTH];
-		size_t size()		{ return strlen(buffer);			}
-		size_t capacity()	{ return DN_NETWORK_BUFFER_LENGTH;	}
-		Message();
-		Message(const char* _data);
-		~Message();
+		size_t	size()		{ return strlen(buffer);						}
+		size_t	capacity()	{ return DN_NETWORK_BUFFER_LENGTH;				}
+		void	clear()		{ memset(buffer, 0, DN_NETWORK_BUFFER_LENGTH);	}
+		Buffer();
+		Buffer(const char* _data);
+		bool operator==(const Buffer rhs)
+		{
+			return !(strcmp(buffer, rhs.buffer));
+		}
+
+		Buffer operator+(const Buffer &rhs)
+		{
+			Buffer result = buffer;
+			strcpy_s(&(result.buffer[result.size()]), result.capacity() - result.size(), rhs.buffer);
+			return result;
+		}
+		~Buffer();
 	};
 
 	struct Packet 
 	{
-		Message msg;
+		Buffer buff;
 		Address address;
 		Packet();
-		Packet(char* msg, char* ip, int port_num);
-		Packet(char* msg, Address addr);
-		Packet(Message msg, Address addr);
+		Packet(Buffer msg, char* ip, int port_num);		
+		Packet(Buffer msg, Address addr);
 	};
 
 	struct Peer
 	{
-		Packet	pck;
+		Address address;
+		Buffer input_msg;
+		Buffer output_msg;
+		eMode mode;
+		Peer();
 		void*	pTag;
+		void SetInputBuffer(Buffer input);
+		void SetOutputBuffer(Buffer output);
 	};
 }
 

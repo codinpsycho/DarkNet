@@ -37,7 +37,7 @@ namespace DarkNet
 
 		switch (_type)
 		{
-		case DarkNet::UDP:			
+		case DarkNet::eUDP:			
 			
 			sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -47,7 +47,7 @@ namespace DarkNet
 				OUTPUT("socket() Failed %d\n", sd);
 			}
 			break;
-		case DarkNet::TCP:
+		case DarkNet::eTCP:
 			//ToDo
 			break;
 		default:
@@ -93,11 +93,11 @@ namespace DarkNet
 		ULONG mode = -1;
 		switch (eMode)
 		{
-		case NonBlocking:
+		case eNonBlocking:
 			mode = 1;
 			ioctlsocket(sd, FIONBIO, &mode);
 			break;
-		case Blocking:
+		case eBlocking:
 			mode = 0;
 			ioctlsocket(sd, FIONBIO, &mode);
 			break;
@@ -185,11 +185,11 @@ namespace DarkNet
 
 		switch (type)
 		{
-		case DarkNet::UDP:
+		case DarkNet::eUDP:
 			hints.ai_socktype = SOCK_DGRAM;
 			hints.ai_protocol = IPPROTO_UDP;
 			break;
-		case DarkNet::TCP:
+		case DarkNet::eTCP:
 			hints.ai_socktype = SOCK_STREAM;
 			hints.ai_protocol = IPPROTO_TCP;
 			break;

@@ -4,7 +4,7 @@ namespace DarkNet
 {	
 	UDPSocket::UDPSocket()
 	{
-		sd = CreateSocket(eSocketType::UDP);
+		sd = CreateSocket(eSocketType::eUDP);
 	}
 
 	UDPSocket::~UDPSocket()
@@ -32,29 +32,44 @@ namespace DarkNet
 		memset(&addr, 0, sizeof(SockAddr));
 	}
 	
-	Message::Message()
+	Buffer::Buffer()
 	{
 		memset(buffer, 0, DN_NETWORK_BUFFER_LENGTH);
 	}
 
-	Message::Message(const char* _data)
+	Buffer::Buffer(const char* _data)
 	{
 		memset(buffer, 0, DN_NETWORK_BUFFER_LENGTH);		
 		strcpy_s(buffer, DN_NETWORK_BUFFER_LENGTH, _data);
 	}
 
-	Message::~Message()
+	Buffer::~Buffer()
 	{
 		memset(buffer, 0, DN_NETWORK_BUFFER_LENGTH);
 	}
-
+		
 	Packet::Packet()
 	{}
 
-	Packet::Packet(char* msg, char* ip, int port_num) : msg(msg), address(ip, port_num)
+	Packet::Packet(Buffer msg, char* ip, int port_num) : buff(msg), address(ip, port_num)
 	{}
 
-	Packet::Packet(char* msg, Address addr) : msg(msg), address(addr)
+	Packet::Packet(Buffer msg, Address addr) : buff(msg), address(addr)
 	{}
+
+	Peer::Peer() : mode(eClient)
+	{}
+
+	void Peer::SetInputBuffer(Buffer input)
+	{
+		input_msg.clear();
+		input_msg = input;
+	}
+
+	void Peer::SetOutputBuffer(Buffer output)
+	{
+		output_msg.clear();
+		output_msg = output;
+	}
 
 }

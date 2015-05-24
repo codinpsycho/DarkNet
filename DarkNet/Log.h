@@ -14,9 +14,9 @@ public:
 		return obj;
 	}
 	
-	void AttachFile(char *fileName);
-	void ClearFile();
-	int Write(const char* data, ...);
+	void	AttachFile(char *fileName);
+	void	ClearFile();
+	int		Write(const char* data, ...);
 
 	int operator<<(const char *data)
 	{

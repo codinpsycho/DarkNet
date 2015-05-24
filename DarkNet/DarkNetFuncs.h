@@ -12,14 +12,14 @@ namespace DarkNet
 { 
 	enum eBlockingMode
 	{
-		NonBlocking,
-		Blocking
+		eNonBlocking,
+		eBlocking
 	};
   
 	enum eSocketType
 	{
-		UDP,
-		TCP
+		eUDP,
+		eTCP
 	};
 
 	int				InitNetwork();
